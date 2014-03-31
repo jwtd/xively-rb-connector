@@ -1,15 +1,46 @@
 xively-rb-connector
 ===================
 
-Ruby gem that provides an interface to Xively by extending xively-rb with convenience functions such Device.find_by_id, a datastream compression (only saves datapoints when value changes), a datapoint recording buffer, etc.
+xively-rb-connector is a ruby gem that provides an interface to [Xively](https://xively.com). It extends Sam Mulube's
+excellent [xively-rb](https://github.com/xively/xively-rb) gem. This gem adds convenience functions such as find_by_id
+lookup functions, datastream compression (only saves datapoints when value changes), a datapoint recording buffer, etc.
 
+[Xively](https://xively.com/whats_xively/) is a public cloud specifically built for the "Internet of Things". With their
+platform, developers can connect physical devices, that produce one or more datastreams, to a managed data store. The
+device's details and datastreams are accessible via key-based access to any service or application that has access to the
+web. Xively provides a fantastic development portal and prototyping accounts are free.
+
+## Requirements
+
+* Ruby 1.9.3 or higher
+* A [Xively account](https://xively.com/signup)
+
+## Contact, feedback and bugs
+
+Please file bugs / issues and feature requests on the [issue tracker](https://github.com/jwtd/xively-rb-connector/issues)
+
+## Install
+
+```
+gem install xively-rb-connector
+```
+
+## Examples
 
 ```ruby
 
 require 'xively-rb-connector'
 
-d = XivelyConnector.find_device_by_id('123456789', 'ACCOUNT-OR-DEVICE-API-KEY-HERE')
+# Xively provides a master api-key and device specific keys. To my knowledge, either can be used here.
+my_api_key = 'XIVELY-ACCOUNT-OR-DEVICE-API-KEY-HERE'
 
+# Each device on Xively gets thier own ID, which is exposed via thier REST API as a "feed"
+feed_id = '123456789'
+
+# Find your device on Xively by its feed_id
+d = XivelyConnector.find_device_by_id(feed_id, my_api_key)
+
+# Access details about the device
 d.id	                # 123456789
 d.feed	                # https://api.xively.com/v2/feeds/123456789.json
 d.auto_feed_url         # https://api.xively.com/v2/feeds/123456789.json
@@ -30,9 +61,8 @@ d.is_private?           # true
 d.status                # live
 d.is_frozen?            # false
 
-# Access location data
+# Access location data directly
 d.has_location?         # true
-d.location              #<OpenStruct name="The location name on xively.com", latitude=35.12343454, longitude=-78.12343456, elevation="354 feet", exposure=nil, disposition=nil, waypoints=nil, domain="physical">
 d.location_name         # The location name on xively.com
 d.location_domain       # physical
 d.location_lon          # -78.12343456
@@ -42,34 +72,71 @@ d.location_exposure
 d.location_disposition
 d.location_waypoints
 
+# Or get a structure that has all the location details
+l = d.location          #<OpenStruct name="The location name on xively.com", latitude=35.12343454, longitude=-78.12343456, elevation="354 feet", exposure=nil, disposition=nil, waypoints=nil, domain="physical">
+l.name                  # The location name on xively.com
+l.domain                # physical
+l.longitude             # -78.12343456
+l.latitude              # 35.12343454
+l.elevation             # 354 feet
+l.exposure
+l.disposition
+l.waypoints
+
 # Examine datastreams
-d.datastream_ids        ["Amps", "Propane", "Volts", "Watts", "Well"]
-d.datastream_values     ["Amps in Amps (A) = 0", "Propane in Cubic Feet (cft) = 0", "Volts in Volts (V) = 9", "Watts in Watts (W) = 0", "Well in Cubic Feet (cft) = 0"]
-d.has_channel?('Volts') true
+d.datastream_ids          # ["Amperage", "Propane", "Voltage", "Power", "Well"]
+d.datastream_values       # ["Amperage in Amps (A) = 0", "Propane in Cubic Feet (cft) = 0", "Voltage in Volts (V) = 9", "Power in Watts (W) = 0", "Well in Cubic Feet (cft) = 0"]
+d.has_channel?('Voltage') # true
 
-# Access datastreams by channel name
-d['Volts']                  #<XivelyConnector::Datastream:0x007ff62a137b80>
-d['Volts'].current_value    9
+# Access datastreams by channel name using bracket syntax
+d['Voltage']                # <XivelyConnector::Datastream:0x007ff62a137b80>
+d['Voltage'].current_value  # 9
+
 ds = d['Volts']
-ds.id                       Volts
-ds.current_value            9
-ds.tags                     Power
-ds.min_value                0.0
-ds.max_value                25.0
-ds.unit_label               Volts
-ds.unit_symbol              V
+ds.id                       # Voltage
+ds.unit_label               # Volts
+ds.unit_symbol              # V
+ds.current_value            # 9
+ds.tags                     # Power
+ds.min_value                # 0.0
+ds.max_value                # 25.0
 
-# Queue new datapoints using the shift operator
-ds.datapoints.size          0
-ds << Xively::Datapoint.new(:at => Time.now(), :value => "10")
-ds << Xively::Datapoint.new(:at => Time.now(), :value => "15")
-ds << Xively::Datapoint.new(:at => Time.now(), :value => "25")
-ds.datapoints.size          3
+# Setup my datastream buffer
+ds.only_save_changes = true    # Will only queue a datapoint if its value is different from the previous datapoint's which is also the current_value
+ds.datapoint_buffer_size = 60  # Will auto-save to feed when 60 points are queued
+ds.only_save_changes           # true
+ds.only_saves_changes?         # true
+ds.datapoint_buffer_size       # 60
+
+# Queue new datapoints in a number of ways using the shift operator
+# BigDecimal is used for value comparison so "10" == 10 == 10.0
+
+ds.datapoints.size          # 0
+ds << Xively::Datapoint.new(:value => "10", :at => Time.now,())
+ds << {:at=>':at => Time.now(), :value => "10"}
+ds << "10"
+ds << 10
+ds << 10.0
+ds << 11
+
+# If ds.only_save_changes is true, the commands above only result in two datapoints being queued (because the only unique values recorded were 10 and 11)
+ds.datapoints.size          # 2
 
 # Save datapoints to xively.com
-ds.only_saves_changes?      true  # Will only queue a datapoint if its value is different from the previous datapoint's which is also the current_value
-ds.datapoint_buffer_size    60    # Will auto-save to feed when 60 points are added
 ds.save_datapoints
-ds.datapoints.size          0
+ds.datapoints.size          # 0
 
 ```
+
+## Resources
+
+* [Free Xively Developer Account](https://xively.com/signup)
+* [xively-rb](https://github.com/xively/xively-rb)
+* [xively-js](http://xively.github.io/xively-js) is a javascript lib for viewing and charting Xively data
+
+## Special Thanks
+
+* Xively - for an awesome data platform
+* Sam Mulube - for xively-rb
+* Ian Duggan - for introducing me to ruby
+

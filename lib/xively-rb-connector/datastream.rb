@@ -43,14 +43,17 @@ module XivelyConnector
 
     end
 
+    # Add a question style accessor to only_save_changes attribute
     def only_saves_changes?
       only_save_changes
     end
 
     # Have shift operator load the datapoint into the datastream's datapoints array
-    # If only_save_changes is true, ignore datapoints whose value is the same as the current value
-    # If the datapoints array has exceeded the datapoint_buffer_size, send them to Xively
-    def <<(datapoint)
+    def <<(measurement)
+      # Make sure the value provided is a datapoint
+      datapoint = cast_to_datapoint(measurement)
+
+      # If only_save_changes is true, ignore datapoints whose value is the same as the current value
       if only_save_changes and BigDecimal.new(datapoint.value) == BigDecimal.new(current_value)
         @logger.debug "Ignoring datapoint from #{datapoint.at} because value did not change from #{current_value}"
       else
@@ -58,7 +61,23 @@ module XivelyConnector
         datapoints << datapoint
         @logger.debug "Queuing datapoint from #{datapoint.at} with value #{current_value}"
       end
-      save_datapoints if datapoints.size >= @datapoint_buffer_size
+
+      # See if the buffer is full
+      check_datapoints_buffer
+    end
+
+    # Converts a measurement to a Datapoint
+    def cast_to_datapoint(measurement, at=Time.now())
+      @logger.debug "cast_to_datapoint(#{measurement.inspect})"
+      if measurement.is_a?(Xively::Datapoint)
+        return measurement
+      elsif measurement.is_a?(Hash)
+        raise "The datapoint hash does not contain :at" unless measurement[:at]
+        raise "The datapoint hash does not contain :value" unless measurement[:value]
+        return Xively::Datapoint.new(measurement)
+      else
+        return Xively::Datapoint.new(:at => at, :value => measurement.to_s)
+      end
     end
 
     # Send the queued datapoints array to Xively
@@ -66,8 +85,9 @@ module XivelyConnector
       @logger.debug "Saving #{datapoints.size} datapoints to the #{id} datastream"
       response = XivelyConnector.connection.post("/v2/feeds/#{device.id}/datastreams/#{id}/datapoints",
                                                   :body => {:datapoints => datapoints}.to_json)
+      # If the response succeeded, clear the datapoint buffer and return the response object
       if response.success?
-        clear_datapoints
+        clear_datapoints_buffer
         response
       else
         logger.error response.response
@@ -75,8 +95,13 @@ module XivelyConnector
       end
     end
 
+    # If the datapoints array has exceeded the datapoint_buffer_size, send them to Xively
+    def check_datapoints_buffer
+      save_datapoints if datapoints.size >= @datapoint_buffer_size
+    end
+
     # Resets the datapoints
-    def clear_datapoints
+    def clear_datapoints_buffer
       @datapoints = []
     end
 
