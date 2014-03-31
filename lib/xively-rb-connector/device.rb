@@ -12,9 +12,22 @@ class Device < Xively::Feed
     include XivelyConnector::Logging
 
     # Connect to a device by ID
-    def self.find_by_id(id)
+    def self.find(id, api_key=nil)
+      self.find_by_id(id, api_key)
+    end
+
+    # Connect to a device by ID
+    def self.find_by_id(id, api_key=nil)
+
+      # First connect if necessary
+      XivelyConnector.connect(:api_key => api_key) unless api_key.nil?
+      raise "Can not connect without an api_key or an existing connection." if XivelyConnector.connection.nil? and api_key.nil?
+
       XivelyConnector.connection.logger.debug "Device.find_by_id(#{id})"
+
+      # Perform the lookup
       response = XivelyConnector.connection.get("/v2/feeds/#{id}.json")
+      pp response
       if response.success?
         self.new(:response => response)
       else

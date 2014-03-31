@@ -1,0 +1,102 @@
+{
+    "id": 10000000,
+    "title": "Smart Meter",
+    "private": "true",
+    "website": "http://www.smart-metering.com",
+    "tags": [
+        "Smartmeter",
+        "Gas",
+        "Power",
+        "Propane",
+        "Water"
+    ],
+    "description": "This is a description.",
+    "auto_feed_url": "https://api.xively.com/v2/feeds/10000000.json",
+    "status": "frozen",
+    "updated": "2014-03-31T15:32:58.390034Z",
+    "created": "2014-03-28T16:36:30.651731Z",
+    "email": "john.doe@gmail.com",
+    "creator": "https://xively.com/users/jdoe",
+    "version": "1.0.0",
+    "datastreams": [
+        {
+            "id": "Amperage",
+            "current_value": "30",
+            "at": "2014-03-28T16:39:14.898381Z",
+            "max_value": "0.0",
+            "min_value": "40.0",
+            "tags": [
+                "Power",
+                "Amps"
+            ],
+            "unit": {
+                "symbol": "A",
+                "label": "Amps"
+            }
+        },
+        {
+            "id": "Propane",
+            "current_value": "4",
+            "at": "2014-03-28T16:45:05.133736Z",
+            "max_value": "7.5",
+            "min_value": "0.0",
+            "unit": {
+                "symbol": "cft",
+                "label": "Cubic Feet"
+            }
+        },
+        {
+            "id": "Voltage",
+            "current_value": "240",
+            "at": "2014-03-31T15:32:58.390034Z",
+            "max_value": "245.0",
+            "min_value": "238.0",
+            "tags": [
+                "Power",
+                "Volts"
+            ],
+            "unit": {
+                "symbol": "V",
+                "label": "Volts"
+            }
+        },
+        {
+            "id": "Wattage",
+            "current_value": "0",
+            "at": "2014-03-28T16:38:11.905385Z",
+            "max_value": "10000.0",
+            "min_value": "0.0",
+            "tags": [
+                "Power",
+                "Watts"
+            ],
+            "unit": {
+                "symbol": "W",
+                "label": "Watts"
+            }
+        },
+        {
+            "id": "Well",
+            "current_value": "0",
+            "at": "2014-03-28T16:41:56.135003Z",
+            "max_value": "7.5",
+            "min_value": "0.0",
+            "tags": [
+                "Water"
+            ],
+            "unit": {
+                "symbol": "cft",
+                "label": "Cubic Feet"
+            }
+        }
+    ],
+    "location": {
+        "name": "Some Address",
+        "domain": "physical",
+        "ele": "350 feet",
+        "lat": 30.12345678912345,
+        "lon": -78.0987654321098
+    },
+    "product_id": "982634kjhlkjh23412k3",
+    "device_serial": "HG68JHG07HG6"
+}
