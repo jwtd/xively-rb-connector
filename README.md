@@ -15,13 +15,13 @@ d.feed	                # https://api.xively.com/v2/feeds/123456789.json
 d.auto_feed_url         # https://api.xively.com/v2/feeds/123456789.json
 
 d.title                 # My Meter
-d.device_serial:        # FOOBAR123456
+d.device_serial         # FOOBAR123456
 d.description           # The xively on xively.com
 d.tags                  # ["Gas", "Power", "Propane", "Water"]
 d.creator               # https://xively.com/users/foo
 d.email                 # your.email@gmail.com
 d.website               # http://www.your-website.com
-d.icon:
+d.icon
 
 d.created               # 2014-01-01 16:36:30 UTC
 d.updated               # 2014-03-31 05:02:25 UTC
@@ -32,8 +32,8 @@ d.is_frozen?            # false
 
 # Access location data
 d.has_location?         # true
-d.location              #<OpenStruct name="6004 Bedfordshire Dr, Raleigh NC", latitude=35.7069733120845, longitude=-78.7572026183472, elevation="354 feet", exposure=nil, disposition=nil, waypoints=nil, domain="physical">
-d.location_name         # The location name on
+d.location              #<OpenStruct name="The location name on xively.com", latitude=35.12343454, longitude=-78.12343456, elevation="354 feet", exposure=nil, disposition=nil, waypoints=nil, domain="physical">
+d.location_name         # The location name on xively.com
 d.location_domain       # physical
 d.location_lon          # -78.12343456
 d.location_lat          # 35.12343454
@@ -44,7 +44,7 @@ d.location_waypoints
 
 # Examine datastreams
 d.datastream_ids        ["Amps", "Propane", "Volts", "Watts", "Well"]
-d.datastream_values:    ["Amps in Amps (A) = 0", "Propane in Cubic Feet (cft) = 0", "Volts in Volts (V) = 9", "Watts in Watts (W) = 0", "Well in Cubic Feet (cft) = 0"]
+d.datastream_values     ["Amps in Amps (A) = 0", "Propane in Cubic Feet (cft) = 0", "Volts in Volts (V) = 9", "Watts in Watts (W) = 0", "Well in Cubic Feet (cft) = 0"]
 d.has_channel?('Volts') true
 
 # Access datastreams by channel name
