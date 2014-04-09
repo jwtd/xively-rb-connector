@@ -11,7 +11,7 @@ module XivelyConnector
     attr :datapoint_buffer_size, :only_save_changes
 
     # Mix in the ability to log
-    include XivelyConnector::Logging
+    include Logger
 
     def initialize(options)
       @logger = options[:logger] || logger
@@ -26,15 +26,15 @@ module XivelyConnector
       super(data)
 
       # Set the default buffer size (1 reading per minute)
-      @datapoint_buffer_size = options[:datapoint_buffer_size] || 60
-      @only_save_changes = options[:only_save_changes] || true
+      @datapoint_buffer_size = options[:datapoint_buffer_size] || 1
+      @only_save_changes = options[:only_save_changes] || false
 
       # Initialize Xively::Datastream's datapoint array to allow shift style loading
       @datapoints = []
 
       # Fix the unit attribute assignments
-      @unit_symbol   = data['unit']['symbol']
-      @unit_label    = data['unit']['label']
+      @unit_symbol = data['unit']['symbol']
+      @unit_label  = data['unit']['label']
 
       # Cast the current value as a BigDecimal for casting strings and comparing to ints and floats
       @current_value = 0 if current_value.nil?

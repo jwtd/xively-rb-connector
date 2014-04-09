@@ -8,31 +8,30 @@ module XivelyConnector
 # Extend https://github.com/xively-rb-connector/xively-rb
 class Device < Xively::Feed
 
+    attr_reader :datapoint_buffer_size, :only_save_changes
+
     # Mix in the ability to log
-    include XivelyConnector::Logging
+    include Logger
 
     # Connect to a device by ID
-    def self.find(id, api_key=nil)
-      self.find_by_id(id, api_key)
-    end
-
-    # Connect to a device by ID
-    def self.find_by_id(id, api_key=nil)
+    def self.find_by_id(id, options={})
 
       # First connect if necessary
-      XivelyConnector.connect(:api_key => api_key) unless api_key.nil?
-      raise "Can not connect without an api_key or an existing connection." if XivelyConnector.connection.nil? and api_key.nil?
+      unless XivelyConnector.connected?
+        raise XivelyConnectorError, "Can not connect without an api_key or an existing connection." unless options[:api_key]
+        XivelyConnector.connect(options)
+      end
 
       XivelyConnector.connection.logger.debug "Device.find_by_id(#{id})"
 
-      # Perform the lookup
-      response = XivelyConnector.connection.get("/v2/feeds/#{id}.json")
-      pp response
-      if response.success?
-        self.new(:response => response)
+      # Perform the lookup  and add the response
+      options[:response] = XivelyConnector.connection.get("/v2/feeds/#{id}.json")
+
+      if options[:response].success?
+        self.new(options)
       else
-        logger.error response.response
-        response.response
+        logger.error options[:response].response
+        options[:response].response
       end
     end
 
@@ -45,6 +44,8 @@ class Device < Xively::Feed
 
       # initialize parent
       data = options[:response]
+      @datapoint_buffer_size = options[:datapoint_buffer_size] || 1
+      @only_save_changes     = options[:only_save_changes] || false
       super(options[:response])
 
       # Convert date strings to ruby dates
@@ -87,7 +88,10 @@ class Device < Xively::Feed
           @datastreams << datastream
         elsif datastream.is_a?(Hash)
           #@datastreams << Datastream.new(datastream)
-          @datastreams << XivelyConnector::Datastream.new(:device => self, :data => datastream)
+          @datastreams << XivelyConnector::Datastream.new(:device => self,
+                                                          :data => datastream,
+                                                          :datapoint_buffer_size => datapoint_buffer_size,
+                                                          :only_save_changes => only_save_changes)
         end
       end
     end

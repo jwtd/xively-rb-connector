@@ -34,7 +34,7 @@ web. Xively provides a fantastic development portal and prototyping accounts are
   spec.add_development_dependency "webmock"
 
   # Runtime dependencies
-  spec.add_runtime_dependency "log4r", "~> 1.1"
+  spec.add_runtime_dependency "logging", "~> 1.8"
   spec.add_runtime_dependency "xively-rb", "~> 0.2"
   spec.add_runtime_dependency "bigdecimal", "~> 1.2"
 

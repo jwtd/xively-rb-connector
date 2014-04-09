@@ -3,18 +3,21 @@ require 'xively-rb'
 module XivelyConnector
 
   class Connection < Xively::Client
-    include XivelyConnector::Logging
 
     format :json
 
     # Mix in the ability to log
-    include XivelyConnector::Logging
+    include Logger
+
+    attr_accessor :config
 
     def initialize(options)
       @logger = options[:logger] || logger
+      #@config = options[:config] || Configuration.new
       @logger.debug "XivelyConnector::Connection initialize"
       super(options[:api_key])
     end
+
 
     #Set HTTParty params that we need to set after initialize is called
     #These params come from @options within initialize and include the following:

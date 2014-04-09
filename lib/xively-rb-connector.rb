@@ -17,6 +17,11 @@ module XivelyConnector
     @@connection = Connection.new(options)
   end
 
+  # Lookup methods delegate to class methods
+  def self.connected?
+    not @@connection.nil?
+  end
+
   # Releases the connection
   def self.disconnect()
     @@connection = nil
@@ -28,16 +33,14 @@ module XivelyConnector
   end
 
   # Lookup methods delegate to class methods
-  def self.find_device_by_id(id, api_key=nil)
-    self.connect(:api_key => api_key) unless api_key.nil?
-    raise "Can not connect without an api_key or an existing connection." if self.connection.nil? and api_key.nil?
-    Device.find_by_id(id)
+  def self.find_device_by_id(id, options)
+    Device.find_by_id(id, options)
   end
 
 end
 
 require "xively-rb-connector/version"
-require "xively-rb-connector/logging"
+require "xively-rb-connector/logger"
 require "xively-rb-connector/connection"
 require "xively-rb-connector/device"
 require "xively-rb-connector/datastream"
