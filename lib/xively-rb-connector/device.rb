@@ -2,7 +2,6 @@ require 'xively-rb'
 require 'json'
 require 'ostruct'
 
-
 module XivelyConnector
 
 # Extend https://github.com/xively-rb-connector/xively-rb
